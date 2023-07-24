@@ -15,4 +15,4 @@ router.get('/logout', logout);
 // /api/me
 router.get('/me',isAuthenticated, userProfile);
 
-module.exports = router
+module.exports = router;
