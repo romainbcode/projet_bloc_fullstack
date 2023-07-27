@@ -3,33 +3,37 @@ const Post = require('../models/postModel');
 const ErrorResponse = require('../utils/errorResponse');
 
 //create post
-exports.createPost = async(req, res, next)=>{
-    const {title, content, postedBy, image, likes, comments} = req.body;
+exports.createPost = async (req, res, next) => {
+    const { title, content, postedBy, image, likes, comments } = req.body;
 
-    try{
+    try {
         //upload image in cloudinary
         const result = await cloudinary.uploader.upload(image, {
             folder: "posts",
             width: 1200,
             crop: "scale"
         })
-        const post = Post.create({
-            title, 
-            content, 
-            postedBy: req.body._id,
-            image:{
-                public_id: result.public_id, //result vient de l'upload de l'image sur cloudinary
+        const post = await Post.create({
+            title,
+            content,
+            postedBy: req.user._id,
+            image: {
+                public_id: result.public_id,
                 url: result.secure_url
-            }
+            },
+
         });
-        res.status(200).json({
+        res.status(201).json({
             success: true,
             post
         })
 
-    }catch(err){
-        next(err);
+
+    } catch (error) {
+        console.log(error);
+        next(error);
     }
+
 }
 
 //show posts
@@ -126,7 +130,7 @@ exports.updatePost = async(req, res, next)=>{
 exports.addComment = async (req, res, next) => {
     const { comment } = req.body;
     try {
-        const postComment = await Post.findByIdAndUpdate(req.params.id, {
+        const post = await Post.findByIdAndUpdate(req.params.id, {
             $push: { comments: { text: comment, postedBy: req.user._id } }
         },
             { new: true }
@@ -155,8 +159,7 @@ exports.addLike = async (req, res, next) => {
  
         res.status(200).json({
             success: true,
-            post,
-            posts
+            post
         })
 
     } catch (error) {
@@ -175,10 +178,6 @@ exports.removeLike = async (req, res, next) => {
         },
             { new: true }
         );
-
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('postedBy', 'name');
-        main.io.emit('remove-like', posts);
-
         res.status(200).json({
             success: true,
             post
