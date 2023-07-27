@@ -6,11 +6,18 @@ import PostCard from '../components/PostCard'
 import axios from 'axios';
 import moment from 'moment';
 import Loader from '../components/Loader'
+import { io } from 'socket.io-client';
 
+const socket = io('http://localhost:9000', {
+  transports: ['websocket'] //Reconnection automatique en cas de perte de connexion
+})
 
 const Home = () => {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(false);
+
+  const [postAddLike, setPostAddLike] = useState([])
+  const [postRemoveLike, setPostRemoveLike] = useState([])
 
   const showPosts = async()=>{
     setLoading(true);
@@ -27,6 +34,20 @@ const Home = () => {
     showPosts();
   }, []);
 
+  useEffect(()=>{
+    socket.on('add-like', (newPost)=>{
+      setPostAddLike(newPost)
+      setPostRemoveLike('')
+    });
+    socket.on('remove-like', (newPost)=>{
+      setPostAddLike('')
+      setPostRemoveLike(newPost)
+    })
+  }, []);
+
+  let uiPosts = postAddLike.length > 0 ? postAddLike : postRemoveLike.length > 0 ? postRemoveLike : posts; //Si on a un commentaire en temps réel, on prend celui la, sinon, on prend dans comments
+
+
   return (
     <>
       <Box sx={{bgcolor: "#fafafa", minHeight: "100vh"}}>
@@ -37,7 +58,7 @@ const Home = () => {
 
                 {
                   loading ? <Loader/> : 
-                  posts && posts.map((post, index) =>(
+                  uiPosts.map((post, index) =>(
                     <Grid item xs={2} sm={4} md={4} ley={index}>
                       <PostCard
                         id={post._id}

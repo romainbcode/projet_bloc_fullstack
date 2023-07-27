@@ -24,11 +24,14 @@ import { useSelector } from 'react-redux';
 import TextareaAutosize from '@mui/base/TextareaAutosize';
 import { toast } from 'react-toastify';
 import CommentList from '../components/CommentList';
+import { io } from 'socket.io-client'
 
-
+const socket = io('http://localhost:9000', {
+  transports: ['websocket'] //Reconnection automatique en cas de perte de connexion
+})
 
 const SinglePost = () => {
-
+    
 
     const { userInfo } = useSelector(state => state.signIn);
 
@@ -39,7 +42,7 @@ const SinglePost = () => {
     const [loading, setLoading] = useState(false);
     const [comment, setComment] = useState('');
     const [comments, setComments] = useState([]);
-
+    const [commentsRealTime, setCommentsRealTime] = useState([]);
 
 
 
@@ -65,6 +68,11 @@ const SinglePost = () => {
     useEffect(() => {
         displaySinglePost();
     }, [])
+    useEffect(() => {
+      socket.on('new-comment', (newComment)=>{
+        setCommentsRealTime(newComment)
+      })
+  }, [])
 
     // add comment
     const addComment = async (e) => {
@@ -74,7 +82,8 @@ const SinglePost = () => {
             if (data.success === true) {
                 setComment('');
                 toast.success("comment added");
-                displaySinglePost();
+                //displaySinglePost();
+                socket.emit('comment', data.post.comments);
             }
             //console.log("comment post", data.post)
         } catch (error) {
@@ -82,6 +91,8 @@ const SinglePost = () => {
             toast.error(error);
         }
     }
+
+    let uiCommentUpdate = commentsRealTime.length > 0 ? commentsRealTime : comments; //Si on a un commentaire en temps réel, on prend celui la, sinon, on prend dans comments
 
  
     return (
@@ -126,7 +137,7 @@ const SinglePost = () => {
                                     }
 
                                     {
-                                        comments.map(comment => (
+                                        uiCommentUpdate.map(comment => (
                                             <CommentList key={comment._id} name={comment.postedBy.name} text={comment.text} />
 
                                         ))

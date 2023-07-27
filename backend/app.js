@@ -8,6 +8,13 @@ const morgan = require('morgan');
 var cors = require('cors')
 var cookieParser = require('cookie-parser');
 
+//configuration of socket.io
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+
+
 const errorHandler = require('./middleware/error');
 
 //import routes
@@ -44,7 +51,21 @@ app.use(errorHandler);
 
 //port 
 const port = process.env.PORT || 9000
-
+/*
 app.listen(port, ()=>{
+    console.log(`Server running on port ${port}`)
+})*/
+
+io.on('connection', (socket)=>{
+    //console.log('a user is connected', socket.id);
+    socket.on('comment', (msg)=>{{
+        //console.log('new comment receiveMessageOnPort', msg);
+        io.emit('new-comment', msg)
+    }})
+})
+
+exports.io = io;
+
+server.listen(port, ()=>{
     console.log(`Server running on port ${port}`)
 })
