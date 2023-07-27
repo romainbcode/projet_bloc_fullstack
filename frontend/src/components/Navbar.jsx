@@ -11,12 +11,20 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import HouseIcon from '@mui/icons-material/House';
 import AdbIcon from '@mui/icons-material/Adb';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { userLogoutAction } from '../redux/actions/userAction';
+import { useDispatch, useSelector } from 'react-redux';
 
-const pages = ['Products', 'Pricing', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+
 
 const Navbar=() =>{
+const dispatch = useDispatch();
+const navigate = useNavigate();
+const { userInfo } = useSelector(state => state.signIn)
+
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
 
@@ -34,6 +42,18 @@ const Navbar=() =>{
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const logOutUser= () =>{
+    dispatch(userLogoutAction);
+    window.location.reload(true);
+    setTimeout(()=>{
+        navigate('/')
+    },500)
+  }
+
+  const goToMenu=()=>{
+    navigate('/')
+  }
 
   return (
     <AppBar position="static">
@@ -57,6 +77,7 @@ const Navbar=() =>{
           >
             LOGO
           </Typography>
+          
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
@@ -87,13 +108,23 @@ const Navbar=() =>{
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
-                </MenuItem>
-              ))}
+                 <Typography
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, color: 'white', display: 'block', mr: 2 }}>
+                    <Link to="/" style={{ color: 'black', textDecoration: "none" }}>
+                        Home
+                    </Link>
+                </Typography>
+                <Typography
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, color: 'white', display: 'block' }}>
+                    <Link to="/login" style={{ color: 'black', textDecoration: "none" }}>
+                        Login
+                    </Link>
+                </Typography>
             </Menu>
           </Box>
+
           <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
@@ -114,16 +145,26 @@ const Navbar=() =>{
             LOGO
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page}
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                {page}
-              </Button>
-            ))}
-          </Box>
+                        {/* menu desktop */}
+
+                <Typography
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, color: 'white', display: 'block', mr: 2 }}>
+                    <Link to="/" style={{ color: 'white', textDecoration: "none" }}>
+                        Home
+                    </Link>
+                </Typography>
+
+                <Typography
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, color: 'white', display: 'block' }}>
+                    <Link to="/login" style={{ color: 'white', textDecoration: "none" }}>
+                        Login
+                    </Link>
+                </Typography>
+
+
+            </Box>
 
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
@@ -147,11 +188,24 @@ const Navbar=() =>{
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography>
+                <MenuItem onClick={handleCloseUserMenu}>
+                    <Typography ><Link style={{textDecoration: "none", color: "black"}}to="/admin/dashboard">Admin</Link></Typography>
                 </MenuItem>
-              ))}
+                <MenuItem onClick={handleCloseUserMenu}>
+                    <Typography ><Link style={{textDecoration: "none", color: "black"}}to="/user/dashboard">User</Link></Typography>
+                </MenuItem>
+
+                {
+                    userInfo ? 
+                    <MenuItem onClick={logOutUser}>
+                        <Typography style={{textDecoration: "none", color: "black"}}>Log out</Typography>
+                    </MenuItem>
+                    :
+                    <MenuItem onClick={handleCloseUserMenu}>
+                        <Typography ><Link style={{textDecoration: "none", color: "black"}}to="/login">Login</Link></Typography>
+                    </MenuItem>
+                }
+              
             </Menu>
           </Box>
         </Toolbar>
